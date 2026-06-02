@@ -9,6 +9,7 @@ Provisioning van de Azure-resources voor de Azure → Snowflake → dbt-pipeline
 | `resource_group` | Resource group | Container voor alle resources |
 | `storage_account` | Storage account (ADLS Gen2) | Data lake met containers `raw`, `staging`, `curated` |
 | `key_vault` | Key Vault | Opslag van Snowflake-credentials en secrets |
+| `data_factory` | Data Factory | Orkestratie: laadt data in de lake en triggert de load naar Snowflake (managed identity met rechten op de data lake) |
 
 ## Mapstructuur
 
@@ -26,7 +27,8 @@ terraform/
 └── modules/
     ├── resource_group/
     ├── storage_account/
-    └── key_vault/
+    ├── key_vault/
+    └── data_factory/
 ```
 
 ## Aan de slag

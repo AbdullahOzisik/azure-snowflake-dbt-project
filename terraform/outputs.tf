@@ -17,3 +17,8 @@ output "key_vault_uri" {
   description = "URI van de Key Vault."
   value       = module.key_vault.vault_uri
 }
+
+output "data_factory_name" {
+  description = "Naam van de Data Factory."
+  value       = module.data_factory.name
+}

@@ -28,3 +28,21 @@ module "key_vault" {
   location            = var.location
   tags                = local.common_tags
 }
+
+# Data Factory voor orkestratie: laadt bronbestanden in de data lake en
+# triggert vervolgens de load naar Snowflake.
+module "data_factory" {
+  source                 = "./modules/data_factory"
+  name                   = "adf-${local.name_prefix}"
+  resource_group_name    = module.resource_group.name
+  location               = var.location
+  data_lake_dfs_endpoint = module.data_lake.primary_dfs_endpoint
+  tags                   = local.common_tags
+}
+
+# Geef de managed identity van Data Factory leesrechten op de data lake.
+resource "azurerm_role_assignment" "adf_data_lake" {
+  scope                = module.data_lake.id
+  role_definition_name = "Storage Blob Data Contributor"
+  principal_id         = module.data_factory.identity_principal_id
+}
