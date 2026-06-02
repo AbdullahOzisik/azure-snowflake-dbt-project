@@ -1,0 +1,13 @@
+# Kopieer naar dev.tfvars / prod.tfvars en vul je eigen waarden in.
+# .tfvars (behalve *.tfvars.example) staan in .gitignore — committen niet nodig.
+
+subscription_id = "00000000-0000-0000-0000-000000000000"
+project         = "asdbt"
+environment     = "dev"
+location        = "westeurope"
+
+tags = {
+  project   = "azure-snowflake-dbt-project"
+  managedby = "terraform"
+  owner     = "Abdullah Ozisik"
+}
