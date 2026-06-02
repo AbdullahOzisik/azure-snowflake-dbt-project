@@ -1,0 +1,33 @@
+# dbt
+target/
+dbt_packages/
+dbt_modules/
+logs/
+.user.yml
+
+# Credentials / profielen — NOOIT committen
+profiles.yml
+*.env
+.env
+*.pem
+*.key
+secrets.*
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.python-version
+
+# Azure
+*.publishsettings
+.azure/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
