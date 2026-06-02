@@ -1,0 +1,71 @@
+# CI — draait automatisch bij elke push en pull request naar main.
+# Controleert alleen of de code klopt. Logt NIET in op Azure of Snowflake,
+# maakt dus niets aan en kost niets (gratis minuten op public repos).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    name: Terraform validate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+
+      - name: Format check
+        run: terraform fmt -check -recursive
+
+      # -backend=false: geen remote state / Azure-login nodig, puur validatie.
+      - name: Init (zonder backend)
+        run: terraform init -backend=false
+
+      - name: Validate
+        run: terraform validate
+
+  dbt:
+    name: dbt parse
+    runs-on: ubuntu-latest
+    env:
+      DBT_PROFILES_DIR: ${{ github.workspace }}
+      # Dummy-waarden: dbt parse rendert het profiel maar maakt GEEN verbinding.
+      SNOWFLAKE_USER: ci_dummy
+      SNOWFLAKE_PASSWORD: ci_dummy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dbt-snowflake
+        run: pip install dbt-snowflake
+
+      # Gebruik het voorbeeldprofiel als CI-profiel (verbindt nergens mee).
+      - name: Prepare profile
+        run: cp profiles.yml.example profiles.yml
+
+      - name: dbt deps
+        run: dbt deps
+
+      # parse bouwt het manifest en controleert refs/sources zonder warehouse.
+      - name: dbt parse
+        run: dbt parse
