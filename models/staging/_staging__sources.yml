@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Ruwe brondata zoals geland in Snowflake (bv. via Azure Data Factory / Snowpipe)."
+    database: RAW
+    schema: PUBLIC
+    tables:
+      - name: customers
+        description: "Ruwe klantgegevens uit het bronsysteem."
+        columns:
+          - name: id
+            description: "Primaire sleutel van de klant."
+            tests:
+              - unique
+              - not_null
+      - name: orders
+        description: "Ruwe ordergegevens uit het bronsysteem."
+        columns:
+          - name: id
+            description: "Primaire sleutel van de order."
+            tests:
+              - unique
+              - not_null

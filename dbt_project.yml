@@ -1,0 +1,28 @@
+name: 'azure_snowflake_dbt_project'
+version: '1.0.0'
+config-version: 2
+
+# Verwijst naar het profiel in ~/.dbt/profiles.yml (zie profiles.yml.example)
+profile: 'azure_snowflake_dbt_project'
+
+# Mappen
+model-paths: ["models"]
+analysis-paths: ["analyses"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+# Modelconfiguratie: staging als views, marts als tables.
+models:
+  azure_snowflake_dbt_project:
+    staging:
+      +materialized: view
+      +schema: staging
+    marts:
+      +materialized: table
+      +schema: marts

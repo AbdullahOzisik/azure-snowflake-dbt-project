@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: "Opgeschoonde, hernoemde klantgegevens — één rij per klant."
+    columns:
+      - name: customer_id
+        description: "Primaire sleutel."
+        tests:
+          - unique
+          - not_null
+
+  - name: stg_orders
+    description: "Opgeschoonde, hernoemde ordergegevens — één rij per order."
+    columns:
+      - name: order_id
+        description: "Primaire sleutel."
+        tests:
+          - unique
+          - not_null
+      - name: customer_id
+        description: "Verwijzing naar de klant."
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_customers')
+              field: customer_id

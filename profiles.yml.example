@@ -1,0 +1,31 @@
+# Kopieer dit bestand naar ~/.dbt/profiles.yml en vul je eigen Snowflake-gegevens in.
+# Commit NOOIT je echte profiles.yml — die staat in .gitignore.
+
+azure_snowflake_dbt_project:
+  target: dev
+  outputs:
+    dev:
+      type: snowflake
+      account: "<jouw_account>.<regio>"   # bv. ab12345.west-europe.azure
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      # Of gebruik key-pair / SSO i.p.v. wachtwoord:
+      # authenticator: externalbrowser
+      role: TRANSFORMER
+      database: ANALYTICS
+      warehouse: TRANSFORMING
+      schema: dbt_dev
+      threads: 4
+      client_session_keep_alive: false
+
+    prod:
+      type: snowflake
+      account: "<jouw_account>.<regio>"
+      user: "{{ env_var('SNOWFLAKE_USER') }}"
+      password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
+      role: TRANSFORMER
+      database: ANALYTICS
+      warehouse: TRANSFORMING
+      schema: prod
+      threads: 8
+      client_session_keep_alive: false
