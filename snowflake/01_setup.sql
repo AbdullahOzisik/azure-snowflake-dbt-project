@@ -43,3 +43,8 @@ grant role transformer to user dbt_user;
 
 -- Geef ook jouw eigen rol toegang, zodat je kunt meekijken/testen.
 grant role transformer to role sysadmin;
+
+-- Geef je EIGEN (huidige) gebruiker de transformer-role, zodat je met je
+-- eigen Snowflake-account via dbt kunt verbinden (role TRANSFORMER).
+set current_user_name = (select current_user());
+grant role transformer to user identifier($current_user_name);
