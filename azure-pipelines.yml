@@ -1,0 +1,104 @@
+# Azure DevOps Pipeline — CI/CD voor het Azure-Snowflake-dbt platform.
+# Spiegelt de GitHub Actions workflows, maar dan in Azure DevOps Pipelines.
+#
+#   Stage Validate (CI) : draait bij elke push naar main — terraform validate + dbt parse.
+#   Stage Deploy   (CD) : terraform apply naar Azure, met approval-gate via Environment 'dev'.
+#
+# Vereist (zie AZURE_DEVOPS.md):
+#   - Een Azure Resource Manager service connection (Workload Identity federation).
+#   - Een Environment 'dev' (optioneel met approval).
+
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  # Naam van je service connection (Project Settings > Service connections).
+  azureServiceConnection: "azure-snowflake-dbt-sc"
+  subscriptionId: "2087de47-3268-4f16-a553-92e38bf8cde5"
+  terraformVersion: "1.9.8"
+  workingDir: "terraform"
+
+stages:
+  # ---------------------------------------------------------------- CI
+  - stage: Validate
+    displayName: "CI - Validate"
+    jobs:
+      - job: terraform
+        displayName: "Terraform validate"
+        steps:
+          - script: |
+              wget -q -O tf.zip https://releases.hashicorp.com/terraform/$(terraformVersion)/terraform_$(terraformVersion)_linux_amd64.zip
+              unzip -o tf.zip && sudo mv terraform /usr/local/bin/
+              terraform version
+            displayName: "Install Terraform"
+          - script: terraform fmt -check -recursive
+            workingDirectory: $(workingDir)
+            displayName: "Format check"
+          - script: terraform init -backend=false
+            workingDirectory: $(workingDir)
+            displayName: "Init (zonder backend)"
+          - script: terraform validate
+            workingDirectory: $(workingDir)
+            displayName: "Validate"
+
+      - job: dbt
+        displayName: "dbt parse"
+        variables:
+          DBT_PROFILES_DIR: $(Build.SourcesDirectory)
+          SNOWFLAKE_USER: ci_dummy
+          SNOWFLAKE_PASSWORD: ci_dummy
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: "3.11"
+          - script: pip install dbt-snowflake
+            displayName: "Install dbt-snowflake"
+          - script: cp profiles.yml.example profiles.yml
+            displayName: "Prepare profile"
+          - script: dbt deps
+            displayName: "dbt deps"
+          - script: dbt parse
+            displayName: "dbt parse"
+
+  # ---------------------------------------------------------------- CD
+  - stage: Deploy
+    displayName: "CD - Deploy to Azure"
+    dependsOn: Validate
+    condition: succeeded()
+    jobs:
+      - deployment: apply
+        displayName: "Terraform apply"
+        environment: "dev" # approval-gate: configureer in Pipelines > Environments
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                - script: |
+                    wget -q -O tf.zip https://releases.hashicorp.com/terraform/$(terraformVersion)/terraform_$(terraformVersion)_linux_amd64.zip
+                    unzip -o tf.zip && sudo mv terraform /usr/local/bin/
+                  displayName: "Install Terraform"
+                - task: AzureCLI@2
+                  displayName: "Terraform init + apply"
+                  inputs:
+                    azureSubscription: $(azureServiceConnection)
+                    scriptType: bash
+                    addSpnToEnvironment: true
+                    workingDirectory: $(workingDir)
+                    inlineScript: |
+                      # Authenticatie via de service connection (Workload Identity / OIDC).
+                      export ARM_USE_OIDC=true
+                      export ARM_CLIENT_ID="$servicePrincipalId"
+                      export ARM_TENANT_ID="$tenantId"
+                      export ARM_OIDC_TOKEN="$idToken"
+                      export ARM_SUBSCRIPTION_ID="$(subscriptionId)"
+
+                      terraform init
+                      terraform apply -auto-approve \
+                        -var="subscription_id=$(subscriptionId)" \
+                        -var="environment=dev"
