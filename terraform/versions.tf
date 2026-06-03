@@ -8,13 +8,11 @@ terraform {
     }
   }
 
-  # Remote state in Azure Storage. Maak deze storage account + container
-  # eenmalig handmatig aan (of via een aparte bootstrap) voordat je
-  # `terraform init` draait. Vul de waarden in via `-backend-config`.
+  # Remote state in Azure Storage (eenmalig aangemaakt via az CLI).
   backend "azurerm" {
-    # resource_group_name  = "rg-tfstate"
-    # storage_account_name = "sttfstate<uniek>"
-    # container_name       = "tfstate"
-    # key                  = "azure-snowflake-dbt.tfstate"
+    resource_group_name  = "rg-tfstate"
+    storage_account_name = "sttfstate85c9c9"
+    container_name       = "tfstate"
+    key                  = "azure-snowflake-dbt.tfstate"
   }
 }
