@@ -74,11 +74,13 @@ az group delete --name rg-tfstate --yes
 az ad app delete --id f3a19dee-c6b5-4a1d-ae32-9ecdff1691ff
 ```
 
-## CD afmaken (later)
+## CD (werkend ✅)
 
-De CD-pipeline (`.github/workflows/deploy.yml`) is bijna klaar: remote state ✅ en
-service principal ✅. Wat nog rest:
-- De service principal **Contributor** geven op de subscription (lukte niet op de
-  lab-subscription wegens beperkte rechten — vereist Owner/User Access Administrator).
-- GitHub secrets zetten: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`.
-- Workflow handmatig starten via Actions > Deploy > Run workflow.
+De CD-pipeline (`.github/workflows/deploy.yml`) is volledig opgezet en getest:
+- Service principal `f3a19dee-c6b5-4a1d-ae32-9ecdff1691ff` heeft Contributor +
+  User Access Administrator op de subscription.
+- OIDC federated credentials gekoppeld aan repo `AbdullahOzisik/azure-snowflake-dbt-project`.
+- GitHub secrets gezet: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`.
+
+**Deployen via GitHub:** Actions > Deploy (Terraform apply) > Run workflow > kies `dev` > Run.
+GitHub logt via OIDC in op Azure en draait `terraform apply` tegen de remote state.
