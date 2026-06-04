@@ -18,12 +18,12 @@ create table if not exists analytics.ops.row_counts (
   row_count   number
 );
 
--- De task zelf. Draait op warehouse TRANSFORMING, elke 5 minuten.
---   Wil je een CRON i.p.v. een interval? Vervang de schedule-regel door:
---   schedule = 'USING CRON 0 * * * * Europe/Amsterdam'   -- elk heel uur
+-- De task zelf. Draait op warehouse TRANSFORMING, elke ochtend om 06:00.
+--   CRON-velden: minuut uur dag-vd-maand maand dag-vd-week  + tijdzone.
+--   '0 6 * * *' = elke dag om 06:00. Voor een interval i.p.v. CRON: '5 MINUTE'.
 create or replace task analytics.ops.log_customer_count
   warehouse = transforming
-  schedule  = '5 MINUTE'
+  schedule  = 'USING CRON 0 6 * * * Europe/Amsterdam'
   as
     insert into analytics.ops.row_counts (table_name, row_count)
     select 'dim_customers', count(*)
