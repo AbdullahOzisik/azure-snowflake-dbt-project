@@ -29,8 +29,11 @@ con = snowflake.connector.connect(
     role="ACCOUNTADMIN",
 )
 try:
-    for cur in con.execute_string(sql):
-        first_line = (cur.query or "").strip().splitlines()[0][:70]
+    # remove_comments=True strips comments vóór het splitsen op ';', zodat
+    # puntkomma's binnen commentaar geen lege statements veroorzaken.
+    for cur in con.execute_string(sql, remove_comments=True):
+        lines = (cur.query or "").strip().splitlines()
+        first_line = lines[0][:70] if lines else "(leeg)"
         print(f"  OK  {first_line}")
 finally:
     con.close()
