@@ -67,3 +67,43 @@ jobs:
           terraform apply -auto-approve \
             -var="subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" \
             -var="environment=${{ inputs.environment }}"
+
+  # ---------------------------------------------------------------------------
+  # Na de infra: dbt build (run + test) tegen Snowflake. Hiermee is de CD
+  # end-to-end: Azure-infra én de transformatielaag worden uitgerold.
+  # Vereist secrets (Settings > Secrets and variables > Actions, per environment):
+  #   SNOWFLAKE_ACCOUNT, SNOWFLAKE_USER, SNOWFLAKE_PASSWORD
+  dbt:
+    name: dbt build
+    needs: apply
+    runs-on: ubuntu-latest
+    # Zelfde environment-gate + (environment-specifieke) secrets als de apply-job.
+    environment: ${{ inputs.environment }}
+    env:
+      DBT_PROFILES_DIR: ${{ github.workspace }}
+      SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER: ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dbt-snowflake
+        run: pip install dbt-snowflake
+
+      # Gebruik het voorbeeldprofiel; account/user/password komen uit secrets.
+      - name: Prepare profile
+        run: cp profiles.yml.example profiles.yml
+
+      - name: dbt deps
+        run: dbt deps
+
+      # build = run + test in één: bouwt de modellen en draait meteen de tests.
+      # -t kiest het juiste target (dev/prod) op basis van de gekozen omgeving.
+      - name: dbt build
+        run: dbt build -t ${{ inputs.environment }}

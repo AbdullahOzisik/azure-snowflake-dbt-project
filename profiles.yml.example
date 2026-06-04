@@ -6,7 +6,7 @@ azure_snowflake_dbt_project:
   outputs:
     dev:
       type: snowflake
-      account: "<jouw_account>.<regio>"   # bv. ab12345.west-europe.azure
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"   # bv. AFHVMYZ-UX38783
       user: "{{ env_var('SNOWFLAKE_USER') }}"
       password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
       # Of gebruik key-pair / SSO i.p.v. wachtwoord:
@@ -20,7 +20,7 @@ azure_snowflake_dbt_project:
 
     prod:
       type: snowflake
-      account: "<jouw_account>.<regio>"
+      account: "{{ env_var('SNOWFLAKE_ACCOUNT') }}"
       user: "{{ env_var('SNOWFLAKE_USER') }}"
       password: "{{ env_var('SNOWFLAKE_PASSWORD') }}"
       role: TRANSFORMER

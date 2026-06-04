@@ -45,6 +45,7 @@ jobs:
     env:
       DBT_PROFILES_DIR: ${{ github.workspace }}
       # Dummy-waarden: dbt parse rendert het profiel maar maakt GEEN verbinding.
+      SNOWFLAKE_ACCOUNT: ci_dummy
       SNOWFLAKE_USER: ci_dummy
       SNOWFLAKE_PASSWORD: ci_dummy
     steps:
