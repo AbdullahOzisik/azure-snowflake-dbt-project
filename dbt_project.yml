@@ -17,12 +17,18 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
-# Modelconfiguratie: staging als views, marts als tables.
+# Modelconfiguratie:
+#   staging  -> views (licht opschonen, goedkoop, altijd vers)
+#   marts    -> dynamic tables: Snowflake houdt ze zelf vers binnen 'target_lag',
+#               dus de orkestratie/refresh gebeurt declaratief ín Snowflake
+#               (geen externe scheduler nodig).
 models:
   azure_snowflake_dbt_project:
     staging:
       +materialized: view
       +schema: staging
     marts:
-      +materialized: table
+      +materialized: dynamic_table
+      +snowflake_warehouse: TRANSFORMING
+      +target_lag: "1 hour"
       +schema: marts
