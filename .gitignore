@@ -41,6 +41,9 @@ override.tf.json
 .terraformrc
 terraform.rc
 
+# Persoonlijk — niet committen
+SPIEKBRIEFJE.md
+
 # OS / editor
 .DS_Store
 Thumbs.db
